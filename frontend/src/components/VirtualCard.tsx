@@ -1,5 +1,5 @@
 import { Card } from '@/types'
-import { Eye, EyeOff, Copy, Pause, Play, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Copy, Pause, Play } from 'lucide-react'
 import { useState } from 'react'
 import { formatCardNumber, formatCurrency, maskCardNumber } from '@/utils/formatters'
 import toast from 'react-hot-toast'
@@ -8,11 +8,10 @@ interface VirtualCardProps {
   card: Card
   onFreeze?: () => void
   onUnfreeze?: () => void
-  onDelete?: () => void
   showDetails?: boolean
 }
 
-export default function VirtualCard({ card, onFreeze, onUnfreeze, onDelete, showDetails = false }: VirtualCardProps) {
+export default function VirtualCard({ card, onFreeze, onUnfreeze, showDetails = false }: VirtualCardProps) {
   const [showFullNumber, setShowFullNumber] = useState(false)
   const [showCVV, setShowCVV] = useState(false)
 
@@ -48,15 +47,6 @@ export default function VirtualCard({ card, onFreeze, onUnfreeze, onDelete, show
                 title={card.status === 'active' ? 'Freeze Card' : 'Unfreeze Card'}
               >
                 {card.status === 'active' ? <Pause size={18} /> : <Play size={18} />}
-              </button>
-            )}
-            {onDelete && (
-              <button
-                onClick={onDelete}
-                className="p-2 rounded-lg bg-dark-bg/50 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
-                title="Delete Card"
-              >
-                <Trash2 size={18} />
               </button>
             )}
           </div>
