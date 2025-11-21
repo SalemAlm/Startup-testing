@@ -107,7 +107,7 @@ export default function VirtualCard({ card, onFreeze, onUnfreeze, showDetails = 
         )}
 
         {/* Status Badge */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 left-4">
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
               card.status === 'active'
