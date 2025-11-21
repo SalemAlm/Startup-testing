@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Search, Filter } from 'lucide-react'
 import { Card } from '@/types'
-import api from '@/services/api'
+import { mockApi } from '@/services/mockData'
 import VirtualCard from '@/components/VirtualCard'
 import CreateCardModal from '@/components/CreateCardModal'
 import toast from 'react-hot-toast'
@@ -18,8 +18,8 @@ export default function Cards() {
 
   const fetchCards = async () => {
     try {
-      const response = await api.get('/cards')
-      setCards(response.data)
+      const data = await mockApi.getCards()
+      setCards(data)
     } catch (error) {
       console.error('Failed to fetch cards:', error)
       toast.error('Failed to load cards')
@@ -30,7 +30,7 @@ export default function Cards() {
 
   const handleFreezeCard = async (cardId: string) => {
     try {
-      await api.patch(`/cards/${cardId}/freeze`)
+      await mockApi.freezeCard(cardId)
       toast.success('Card frozen successfully')
       fetchCards()
     } catch (error) {
@@ -40,7 +40,7 @@ export default function Cards() {
 
   const handleUnfreezeCard = async (cardId: string) => {
     try {
-      await api.patch(`/cards/${cardId}/unfreeze`)
+      await mockApi.unfreezeCard(cardId)
       toast.success('Card unfrozen successfully')
       fetchCards()
     } catch (error) {

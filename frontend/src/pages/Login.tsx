@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
-import api from '@/services/api'
+import { mockApi } from '@/services/mockData'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -18,13 +18,12 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      const response = await api.post('/auth/login', { email, password })
-      const { user, token } = response.data
+      const { user, token } = await mockApi.login(email, password)
       login(user, token)
       toast.success('Welcome back!')
       navigate('/')
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed')
+      toast.error(error.message || 'Login failed')
     } finally {
       setIsLoading(false)
     }

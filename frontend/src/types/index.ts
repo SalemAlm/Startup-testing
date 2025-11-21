@@ -5,6 +5,7 @@ export interface User {
   role: 'admin' | 'finance' | 'member'
   companyId: string
   createdAt: string
+  password?: string // Only used for mock authentication
 }
 
 export interface Card {

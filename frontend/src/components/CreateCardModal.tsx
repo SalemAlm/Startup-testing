@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { TransactionCategory } from '@/types'
-import api from '@/services/api'
+import { mockApi } from '@/services/mockData'
+import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 
 interface CreateCardModalProps {
@@ -10,9 +11,11 @@ interface CreateCardModalProps {
 }
 
 export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalProps) {
+  const { user } = useAuthStore()
   const [formData, setFormData] = useState({
     cardholderName: '',
-    userId: '',
+    userId: user?.id || '',
+    userName: user?.name || '',
     balance: 0,
     limits: {
       perTransaction: 0,
@@ -44,7 +47,7 @@ export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalP
     setIsSubmitting(true)
 
     try {
-      await api.post('/cards', {
+      await mockApi.createCard({
         ...formData,
         restrictions: {
           allowedCategories: formData.allowedCategories,
@@ -54,7 +57,7 @@ export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalP
       toast.success('Card created successfully')
       onSuccess()
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create card')
+      toast.error(error.message || 'Failed to create card')
     } finally {
       setIsSubmitting(false)
     }

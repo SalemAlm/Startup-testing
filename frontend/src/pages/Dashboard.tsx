@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { CreditCard, TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { DashboardStats, Transaction } from '@/types'
 import { formatCurrency, formatDateTime } from '@/utils/formatters'
-import api from '@/services/api'
+import { mockApi } from '@/services/mockData'
+import { useAuthStore } from '@/store/authStore'
 import VirtualCard from '@/components/VirtualCard'
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const { user } = useAuthStore()
 
   useEffect(() => {
     fetchDashboardData()
@@ -15,8 +17,8 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await api.get('/dashboard/stats')
-      setStats(response.data)
+      const data = await mockApi.getDashboardStats(user?.id || '1')
+      setStats(data)
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
     } finally {
