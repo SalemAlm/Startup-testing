@@ -12,6 +12,7 @@ import Approvals from './pages/Approvals'
 import Team from './pages/Team'
 import Settings from './pages/Settings'
 import Layout from './components/Layout'
+import MobileApp from './mobile/MobileApp'
 
 function App() {
   const { isAuthenticated } = useAuthStore()
@@ -37,6 +38,9 @@ function App() {
 
       <Routes>
         <Route path="/login" element={<Login />} />
+
+        {/* Mobile App Route - Standalone (no layout) */}
+        <Route path="/mobile" element={<MobileApp />} />
 
         {isAuthenticated ? (
           <Route path="/" element={<Layout />}>
