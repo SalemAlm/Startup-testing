@@ -18,6 +18,8 @@ export default function Cards() {
   const [showAddBalanceModal, setShowAddBalanceModal] = useState(false)
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'frozen' | 'cancelled'>('all')
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
 
   useEffect(() => {
     fetchCards()
@@ -96,11 +98,17 @@ export default function Cards() {
 
   const canEditCards = user?.role === 'admin' || user?.permissions?.canEditCards
 
-  const filteredCards = cards.filter(
-    (card) =>
+  const filteredCards = cards.filter((card) => {
+    // Search filter
+    const matchesSearch =
       card.cardholderName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       card.cardNumber.includes(searchQuery)
-  )
+
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || card.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
 
   if (loading) {
     return (
@@ -125,21 +133,49 @@ export default function Cards() {
       </div>
 
       {/* Search and Filter */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search by cardholder or card number..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12"
-          />
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Search by cardholder or card number..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilterMenu(!showFilterMenu)}
+            className={`btn-secondary flex items-center gap-2 ${showFilterMenu ? 'bg-primary/10 border-primary/30' : ''}`}
+          >
+            <Filter size={20} />
+            Filter
+          </button>
         </div>
-        <button className="btn-secondary flex items-center gap-2">
-          <Filter size={20} />
-          Filter
-        </button>
+
+        {/* Filter Pills */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-400">Status:</span>
+          {(['all', 'active', 'frozen', 'cancelled'] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+                statusFilter === status
+                  ? 'bg-primary text-dark-bg'
+                  : 'bg-dark-navy text-gray-400 hover:bg-dark-slate'
+              }`}
+            >
+              {status}
+              {status !== 'all' && (
+                <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                  {cards.filter((c) => c.status === status).length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Cards Grid */}
