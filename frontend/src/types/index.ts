@@ -6,6 +6,18 @@ export interface User {
   companyId: string
   createdAt: string
   password?: string // Only used for mock authentication
+  permissions?: UserPermissions
+}
+
+export interface UserPermissions {
+  canCreateCards: boolean
+  canApproveRequests: boolean
+  canManageTeam: boolean
+  canViewAllCards: boolean
+  canViewAnalytics: boolean
+  canManageSettings: boolean
+  canFreezeCards: boolean
+  canEditCards: boolean
 }
 
 export interface Card {
@@ -15,7 +27,7 @@ export interface Card {
   expiryDate: string
   cvv: string
   balance: number
-  status: 'active' | 'frozen' | 'cancelled'
+  status: 'active' | 'frozen' | 'cancelled' | 'pending_approval'
   userId: string
   userName: string
   limits: CardLimits

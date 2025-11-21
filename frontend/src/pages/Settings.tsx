@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { User, Bell, Shield, CreditCard, Building } from 'lucide-react'
+import { User, Bell, Shield, Building } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 

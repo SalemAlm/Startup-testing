@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Plus, Mail, Trash2, X } from 'lucide-react'
+import { Plus, Mail, Trash2, X, Shield } from 'lucide-react'
 import { User } from '@/types'
 import { mockApi } from '@/services/mockData'
 import { useAuthStore } from '@/store/authStore'
 import { formatDateTime } from '@/utils/formatters'
+import TeamPermissionsModal from '@/components/TeamPermissionsModal'
 import toast from 'react-hot-toast'
 
 export default function Team() {
   const [members, setMembers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false)
+  const [selectedMember, setSelectedMember] = useState<User | null>(null)
   const { user: currentUser } = useAuthStore()
 
   useEffect(() => {
@@ -38,6 +41,17 @@ export default function Team() {
     } catch (error) {
       toast.error('Failed to remove team member')
     }
+  }
+
+  const handleManagePermissions = (member: User) => {
+    setSelectedMember(member)
+    setShowPermissionsModal(true)
+  }
+
+  const handlePermissionsModalClose = () => {
+    setShowPermissionsModal(false)
+    setSelectedMember(null)
+    fetchTeamMembers()
   }
 
   const getRoleBadge = (role: string) => {
@@ -126,14 +140,24 @@ export default function Team() {
                 </div>
               </div>
 
-              {currentUser?.role === 'admin' && currentUser.id !== member.id && (
+              {currentUser?.role === 'admin' && (
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleDeleteMember(member.id)}
-                    className="p-2 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+                    onClick={() => handleManagePermissions(member)}
+                    className="px-3 py-2 hover:bg-primary/10 text-gray-400 hover:text-primary rounded-lg transition-colors flex items-center gap-2"
+                    title="Manage Permissions"
                   >
-                    <Trash2 size={18} />
+                    <Shield size={18} />
+                    <span className="text-sm">Permissions</span>
                   </button>
+                  {currentUser.id !== member.id && (
+                    <button
+                      onClick={() => handleDeleteMember(member.id)}
+                      className="p-2 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -149,6 +173,15 @@ export default function Team() {
             setShowInviteModal(false)
             fetchTeamMembers()
           }}
+        />
+      )}
+
+      {/* Permissions Modal */}
+      {showPermissionsModal && selectedMember && (
+        <TeamPermissionsModal
+          member={selectedMember}
+          onClose={handlePermissionsModalClose}
+          onSuccess={handlePermissionsModalClose}
         />
       )}
     </div>

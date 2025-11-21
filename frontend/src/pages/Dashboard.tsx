@@ -4,7 +4,6 @@ import { DashboardStats, Transaction } from '@/types'
 import { formatCurrency, formatDateTime } from '@/utils/formatters'
 import { mockApi } from '@/services/mockData'
 import { useAuthStore } from '@/store/authStore'
-import VirtualCard from '@/components/VirtualCard'
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)

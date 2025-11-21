@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Search, Filter, Download, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { Search, Download, CheckCircle, Clock, AlertCircle } from 'lucide-react'
 import { Transaction } from '@/types'
 import { mockApi } from '@/services/mockData'
 import { formatCurrency, formatDateTime } from '@/utils/formatters'

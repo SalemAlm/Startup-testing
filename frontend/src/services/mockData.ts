@@ -10,6 +10,16 @@ export const MOCK_USERS: User[] = [
     role: 'admin',
     companyId: 'company-1',
     createdAt: new Date().toISOString(),
+    permissions: {
+      canCreateCards: true,
+      canApproveRequests: true,
+      canManageTeam: true,
+      canViewAllCards: true,
+      canViewAnalytics: true,
+      canManageSettings: true,
+      canFreezeCards: true,
+      canEditCards: true,
+    },
   },
   {
     id: '2',
@@ -19,6 +29,16 @@ export const MOCK_USERS: User[] = [
     role: 'finance',
     companyId: 'company-1',
     createdAt: new Date().toISOString(),
+    permissions: {
+      canCreateCards: true,
+      canApproveRequests: true,
+      canManageTeam: false,
+      canViewAllCards: true,
+      canViewAnalytics: true,
+      canManageSettings: false,
+      canFreezeCards: true,
+      canEditCards: true,
+    },
   },
   {
     id: '3',
@@ -28,6 +48,16 @@ export const MOCK_USERS: User[] = [
     role: 'member',
     companyId: 'company-1',
     createdAt: new Date().toISOString(),
+    permissions: {
+      canCreateCards: false,
+      canApproveRequests: false,
+      canManageTeam: false,
+      canViewAllCards: false,
+      canViewAnalytics: false,
+      canManageSettings: false,
+      canFreezeCards: false,
+      canEditCards: false,
+    },
   },
 ]
 
@@ -366,6 +396,19 @@ export const mockApi = {
     return mockApi.updateCard(cardId, { status: 'active' })
   },
 
+  addCardBalance: async (cardId: string, amount: number) => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const cards = JSON.parse(localStorage.getItem(STORAGE_KEYS.CARDS) || '[]')
+    const index = cards.findIndex((c: Card) => c.id === cardId)
+
+    if (index === -1) throw new Error('Card not found')
+
+    cards[index].balance += amount
+    localStorage.setItem(STORAGE_KEYS.CARDS, JSON.stringify(cards))
+    return cards[index]
+  },
+
   // Transactions
   getTransactions: async () => {
     await new Promise(resolve => setTimeout(resolve, 300))
@@ -395,6 +438,43 @@ export const mockApi = {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.APPROVALS) || '[]')
   },
 
+  createApprovalRequest: async (requestData: Partial<ApprovalRequest>) => {
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    const approvals = JSON.parse(localStorage.getItem(STORAGE_KEYS.APPROVALS) || '[]')
+    const newApproval: ApprovalRequest = {
+      id: `apr-${Date.now()}`,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...requestData,
+    } as ApprovalRequest
+
+    approvals.unshift(newApproval)
+    localStorage.setItem(STORAGE_KEYS.APPROVALS, JSON.stringify(approvals))
+
+    // Create notification for admins/finance
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
+    const notifications = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]')
+
+    users.forEach((user: User) => {
+      if (user.role === 'admin' || user.role === 'finance') {
+        notifications.unshift({
+          id: `notif-${Date.now()}-${user.id}`,
+          userId: user.id,
+          type: 'approval',
+          title: 'New approval request',
+          message: `${requestData.requestedByName} requested a new card`,
+          read: false,
+          createdAt: new Date().toISOString(),
+        })
+      }
+    })
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications))
+
+    return newApproval
+  },
+
   updateApproval: async (approvalId: string, status: 'approved' | 'rejected', approverId: string, approverName: string) => {
     await new Promise(resolve => setTimeout(resolve, 300))
 
@@ -412,6 +492,29 @@ export const mockApi = {
     }
 
     localStorage.setItem(STORAGE_KEYS.APPROVALS, JSON.stringify(approvals))
+
+    // If approved and it's a card creation, create the card
+    if (status === 'approved' && approvals[index].type === 'card_creation') {
+      const cardData = approvals[index].data
+      await mockApi.createCard({
+        ...cardData,
+        status: 'active',
+      })
+    }
+
+    // Create notification for the requester
+    const notifications = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '[]')
+    notifications.unshift({
+      id: `notif-${Date.now()}`,
+      userId: approvals[index].requestedBy,
+      type: 'approval',
+      title: status === 'approved' ? 'Request approved' : 'Request rejected',
+      message: `Your ${approvals[index].type.replace('_', ' ')} request has been ${status}`,
+      read: false,
+      createdAt: new Date().toISOString(),
+    })
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications))
+
     return approvals[index]
   },
 
@@ -471,6 +574,20 @@ export const mockApi = {
     if (index === -1) throw new Error('User not found')
 
     users[index] = { ...users[index], ...updates }
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users))
+    const { password, ...userWithoutPassword } = users[index]
+    return userWithoutPassword
+  },
+
+  updateTeamMemberPermissions: async (userId: string, permissions: any) => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
+    const index = users.findIndex((u: User) => u.id === userId)
+
+    if (index === -1) throw new Error('User not found')
+
+    users[index] = { ...users[index], permissions }
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users))
     const { password, ...userWithoutPassword } = users[index]
     return userWithoutPassword

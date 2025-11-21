@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Plus, Search, Filter } from 'lucide-react'
+import { Plus, Search, Filter, Edit, DollarSign } from 'lucide-react'
 import { Card } from '@/types'
 import { mockApi } from '@/services/mockData'
 import VirtualCard from '@/components/VirtualCard'
 import CreateCardModal from '@/components/CreateCardModal'
+import EditCardModal from '@/components/EditCardModal'
+import AddBalanceModal from '@/components/AddBalanceModal'
+import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 
 export default function Cards() {
+  const { user } = useAuthStore()
   const [cards, setCards] = useState<Card[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showAddBalanceModal, setShowAddBalanceModal] = useState(false)
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
@@ -47,6 +54,25 @@ export default function Cards() {
       toast.error('Failed to unfreeze card')
     }
   }
+
+  const handleEditCard = (card: Card) => {
+    setSelectedCard(card)
+    setShowEditModal(true)
+  }
+
+  const handleAddBalance = (card: Card) => {
+    setSelectedCard(card)
+    setShowAddBalanceModal(true)
+  }
+
+  const handleModalClose = () => {
+    setShowEditModal(false)
+    setShowAddBalanceModal(false)
+    setSelectedCard(null)
+    fetchCards()
+  }
+
+  const canEditCards = user?.role === 'admin' || user?.permissions?.canEditCards
 
   const filteredCards = cards.filter(
     (card) =>
@@ -105,28 +131,50 @@ export default function Cards() {
                 onFreeze={() => handleFreezeCard(card.id)}
                 onUnfreeze={() => handleUnfreezeCard(card.id)}
               />
-              <div className="mt-4 p-4 bg-dark-card rounded-xl">
-                <h4 className="text-sm font-semibold text-white mb-3">Spending Limits</h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  {card.limits.perTransaction && (
-                    <div>
-                      <p className="text-gray-400">Per Transaction</p>
-                      <p className="text-white font-semibold">{formatCurrency(card.limits.perTransaction)}</p>
-                    </div>
-                  )}
-                  {card.limits.daily && (
-                    <div>
-                      <p className="text-gray-400">Daily</p>
-                      <p className="text-white font-semibold">{formatCurrency(card.limits.daily)}</p>
-                    </div>
-                  )}
-                  {card.limits.monthly && (
-                    <div>
-                      <p className="text-gray-400">Monthly</p>
-                      <p className="text-white font-semibold">{formatCurrency(card.limits.monthly)}</p>
-                    </div>
-                  )}
+              <div className="mt-4 p-4 bg-dark-card rounded-xl space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-white mb-3">Spending Limits</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {card.limits.perTransaction && (
+                      <div>
+                        <p className="text-gray-400">Per Transaction</p>
+                        <p className="text-white font-semibold">{formatCurrency(card.limits.perTransaction)}</p>
+                      </div>
+                    )}
+                    {card.limits.daily && (
+                      <div>
+                        <p className="text-gray-400">Daily</p>
+                        <p className="text-white font-semibold">{formatCurrency(card.limits.daily)}</p>
+                      </div>
+                    )}
+                    {card.limits.monthly && (
+                      <div>
+                        <p className="text-gray-400">Monthly</p>
+                        <p className="text-white font-semibold">{formatCurrency(card.limits.monthly)}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Action Buttons */}
+                {canEditCards && (
+                  <div className="flex gap-2 pt-3 border-t border-dark-slate">
+                    <button
+                      onClick={() => handleAddBalance(card)}
+                      className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
+                    >
+                      <DollarSign size={16} />
+                      Add Balance
+                    </button>
+                    <button
+                      onClick={() => handleEditCard(card)}
+                      className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
+                    >
+                      <Edit size={16} />
+                      Edit Card
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -143,6 +191,16 @@ export default function Cards() {
           setShowCreateModal(false)
           fetchCards()
         }} />
+      )}
+
+      {/* Edit Card Modal */}
+      {showEditModal && selectedCard && (
+        <EditCardModal card={selectedCard} onClose={handleModalClose} onSuccess={handleModalClose} />
+      )}
+
+      {/* Add Balance Modal */}
+      {showAddBalanceModal && selectedCard && (
+        <AddBalanceModal card={selectedCard} onClose={handleModalClose} onSuccess={handleModalClose} />
       )}
     </div>
   )

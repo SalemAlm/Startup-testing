@@ -1,31 +1,26 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { TransactionCategory } from '@/types'
+import { Card, TransactionCategory } from '@/types'
 import { mockApi } from '@/services/mockData'
-import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 
-interface CreateCardModalProps {
+interface EditCardModalProps {
+  card: Card
   onClose: () => void
   onSuccess: () => void
 }
 
-export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalProps) {
-  const { user } = useAuthStore()
+export default function EditCardModal({ card, onClose, onSuccess }: EditCardModalProps) {
   const [formData, setFormData] = useState({
-    cardholderName: '',
-    userId: user?.id || '',
-    userName: user?.name || '',
-    balance: 0,
     limits: {
-      perTransaction: 0,
-      daily: 0,
-      weekly: 0,
-      monthly: 0,
-      total: 0,
+      perTransaction: card.limits.perTransaction || 0,
+      daily: card.limits.daily || 0,
+      weekly: card.limits.weekly || 0,
+      monthly: card.limits.monthly || 0,
+      total: card.limits.total || 0,
     },
-    allowedCategories: [] as TransactionCategory[],
-    allowTravel: false,
+    allowedCategories: card.restrictions.allowedCategories,
+    allowTravel: card.restrictions.allowTravel,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -47,38 +42,17 @@ export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalP
     setIsSubmitting(true)
 
     try {
-      // Check if user can create cards directly or needs approval
-      const canCreateDirectly = user?.role === 'admin' || user?.permissions?.canCreateCards
-
-      if (canCreateDirectly && user?.role === 'admin') {
-        // Admins can create cards directly
-        await mockApi.createCard({
-          ...formData,
-          restrictions: {
-            allowedCategories: formData.allowedCategories,
-            allowTravel: formData.allowTravel,
-          },
-        })
-        toast.success('Card created successfully')
-      } else {
-        // Others submit for approval
-        await mockApi.createApprovalRequest({
-          type: 'card_creation',
-          requestedBy: user!.id,
-          requestedByName: user!.name,
-          data: {
-            ...formData,
-            restrictions: {
-              allowedCategories: formData.allowedCategories,
-              allowTravel: formData.allowTravel,
-            },
-          },
-        })
-        toast.success('Card request submitted for approval')
-      }
+      await mockApi.updateCard(card.id, {
+        limits: formData.limits,
+        restrictions: {
+          allowedCategories: formData.allowedCategories,
+          allowTravel: formData.allowTravel,
+        },
+      })
+      toast.success('Card updated successfully')
       onSuccess()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit request')
+      toast.error(error.message || 'Failed to update card')
     } finally {
       setIsSubmitting(false)
     }
@@ -98,7 +72,10 @@ export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalP
       <div className="bg-dark-card rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-dark-card border-b border-dark-slate p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">Create New Card</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Edit Card</h2>
+            <p className="text-gray-400 text-sm mt-1">{card.cardholderName}</p>
+          </div>
           <button onClick={onClose} className="p-2 hover:bg-dark-navy rounded-lg transition-colors">
             <X size={24} />
           </button>
@@ -106,36 +83,6 @@ export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalP
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Cardholder Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Cardholder Name <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.cardholderName}
-              onChange={(e) => setFormData({ ...formData, cardholderName: e.target.value })}
-              placeholder="Enter cardholder name"
-              required
-            />
-          </div>
-
-          {/* Initial Balance */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Initial Balance (USD) <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.balance}
-              onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) })}
-              placeholder="0.00"
-              required
-            />
-          </div>
-
           {/* Spending Limits */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Spending Limits</h3>
@@ -250,7 +197,7 @@ export default function CreateCardModal({ onClose, onSuccess }: CreateCardModalP
               Cancel
             </button>
             <button type="submit" disabled={isSubmitting} className="flex-1 btn-primary">
-              {isSubmitting ? 'Creating...' : 'Create Card'}
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

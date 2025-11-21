@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Cards from './pages/Cards'
 import Transactions from './pages/Transactions'
 import Analytics from './pages/Analytics'
+import Approvals from './pages/Approvals'
 import Team from './pages/Team'
 import Settings from './pages/Settings'
 import Layout from './components/Layout'
@@ -42,6 +43,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="cards" element={<Cards />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="approvals" element={<Approvals />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="team" element={<Team />} />
             <Route path="settings" element={<Settings />} />
