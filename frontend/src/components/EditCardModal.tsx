@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 import { Card, TransactionCategory } from '@/types'
 import { mockApi } from '@/services/mockData'
 import toast from 'react-hot-toast'
@@ -8,9 +8,10 @@ interface EditCardModalProps {
   card: Card
   onClose: () => void
   onSuccess: () => void
+  onDelete?: () => void
 }
 
-export default function EditCardModal({ card, onClose, onSuccess }: EditCardModalProps) {
+export default function EditCardModal({ card, onClose, onSuccess, onDelete }: EditCardModalProps) {
   const [formData, setFormData] = useState({
     limits: {
       perTransaction: card.limits.perTransaction || 0,
@@ -192,13 +193,25 @@ export default function EditCardModal({ card, onClose, onSuccess }: EditCardModa
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center gap-4 pt-4">
-            <button type="button" onClick={onClose} className="flex-1 btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting} className="flex-1 btn-primary">
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </button>
+          <div className="space-y-3 pt-4">
+            <div className="flex items-center gap-4">
+              <button type="button" onClick={onClose} className="flex-1 btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" disabled={isSubmitting} className="flex-1 btn-primary">
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="w-full btn-secondary flex items-center justify-center gap-2 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30"
+              >
+                <Trash2 size={18} />
+                Delete Card
+              </button>
+            )}
           </div>
         </form>
       </div>

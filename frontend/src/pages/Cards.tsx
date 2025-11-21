@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Search, Filter, Edit, DollarSign, Trash2 } from 'lucide-react'
+import { Plus, Search, Filter, Edit, DollarSign } from 'lucide-react'
 import { Card } from '@/types'
 import { mockApi } from '@/services/mockData'
 import VirtualCard from '@/components/VirtualCard'
@@ -231,13 +231,6 @@ export default function Cards() {
                       <Edit size={16} />
                       Edit Card
                     </button>
-                    <button
-                      onClick={() => handleDeleteCard(card.id, card.cardholderName)}
-                      className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30"
-                    >
-                      <Trash2 size={16} />
-                      Delete
-                    </button>
                   </div>
                 )}
               </div>
@@ -260,7 +253,15 @@ export default function Cards() {
 
       {/* Edit Card Modal */}
       {showEditModal && selectedCard && (
-        <EditCardModal card={selectedCard} onClose={handleModalClose} onSuccess={handleModalClose} />
+        <EditCardModal
+          card={selectedCard}
+          onClose={handleModalClose}
+          onSuccess={handleModalClose}
+          onDelete={canEditCards ? () => {
+            handleModalClose()
+            handleDeleteCard(selectedCard.id, selectedCard.cardholderName)
+          } : undefined}
+        />
       )}
 
       {/* Add Balance Modal */}
