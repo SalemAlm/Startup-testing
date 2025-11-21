@@ -433,6 +433,97 @@ export const mockApi = {
       localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications))
     }
   },
+
+  // Team Management
+  getTeamMembers: async () => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
+    return users.map((u: any) => {
+      const { password, ...userWithoutPassword } = u
+      return userWithoutPassword
+    })
+  },
+
+  inviteTeamMember: async (memberData: Partial<User>) => {
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      companyId: 'company-1',
+      createdAt: new Date().toISOString(),
+      password: 'Welcome123!',
+      ...memberData,
+    } as User
+
+    users.push(newUser)
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users))
+    const { password, ...userWithoutPassword } = newUser
+    return userWithoutPassword
+  },
+
+  updateTeamMember: async (userId: string, updates: Partial<User>) => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
+    const index = users.findIndex((u: User) => u.id === userId)
+
+    if (index === -1) throw new Error('User not found')
+
+    users[index] = { ...users[index], ...updates }
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users))
+    const { password, ...userWithoutPassword } = users[index]
+    return userWithoutPassword
+  },
+
+  deleteTeamMember: async (userId: string) => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
+    const filtered = users.filter((u: User) => u.id !== userId)
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(filtered))
+  },
+
+  // Analytics
+  getSpendingByCategory: async () => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS) || '[]')
+
+    const categoryTotals: Record<string, number> = {}
+    transactions.forEach((t: Transaction) => {
+      categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount
+    })
+
+    return Object.entries(categoryTotals).map(([category, amount]) => ({
+      category,
+      amount,
+    }))
+  },
+
+  getSpendingTrend: async () => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS) || '[]')
+
+    const last6Months = []
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date()
+      date.setMonth(date.getMonth() - i)
+      const month = date.toLocaleString('default', { month: 'short' })
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+
+      const monthTotal = transactions
+        .filter((t: Transaction) => {
+          const txDate = new Date(t.createdAt)
+          return txDate >= monthStart && txDate <= monthEnd
+        })
+        .reduce((sum: number, t: Transaction) => sum + t.amount, 0)
+
+      last6Months.push({ month, amount: monthTotal })
+    }
+
+    return last6Months
+  },
 }
 
 // Helper functions
