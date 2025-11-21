@@ -34,6 +34,8 @@ export interface Card {
   restrictions: CardRestrictions
   createdAt: string
   lastUsed?: string
+  project?: string
+  addedToWallet?: boolean
 }
 
 export interface CardLimits {
@@ -84,9 +86,39 @@ export interface Receipt {
   uploadedAt: string
 }
 
+export interface CardRequest {
+  id: string
+  requestedBy: string
+  requestedByName: string
+  project: string
+  requestedLimits: CardLimits
+  requestedCategories: TransactionCategory[]
+  allowTravel: boolean
+  reason: string
+  status: 'pending' | 'approved' | 'rejected'
+  approvedBy?: string
+  approvedByName?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BalanceTopUpRequest {
+  id: string
+  cardId: string
+  requestedBy: string
+  requestedByName: string
+  amount: number
+  reason: string
+  status: 'pending' | 'approved' | 'rejected'
+  approvedBy?: string
+  approvedByName?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface ApprovalRequest {
   id: string
-  type: 'card_creation' | 'limit_increase' | 'expense'
+  type: 'card_creation' | 'limit_increase' | 'expense' | 'balance_topup'
   requestedBy: string
   requestedByName: string
   status: 'pending' | 'approved' | 'rejected'
