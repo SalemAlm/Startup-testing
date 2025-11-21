@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Search, Filter, Edit, DollarSign } from 'lucide-react'
+import { Plus, Search, Filter, Edit, DollarSign, Trash2 } from 'lucide-react'
 import { Card } from '@/types'
 import { mockApi } from '@/services/mockData'
 import VirtualCard from '@/components/VirtualCard'
@@ -35,7 +35,11 @@ export default function Cards() {
     }
   }
 
-  const handleFreezeCard = async (cardId: string) => {
+  const handleFreezeCard = async (cardId: string, cardholderName: string) => {
+    if (!confirm(`Are you sure you want to freeze the card for ${cardholderName}? The cardholder will not be able to make any transactions until the card is unfrozen.`)) {
+      return
+    }
+
     try {
       await mockApi.freezeCard(cardId)
       toast.success('Card frozen successfully')
@@ -45,13 +49,31 @@ export default function Cards() {
     }
   }
 
-  const handleUnfreezeCard = async (cardId: string) => {
+  const handleUnfreezeCard = async (cardId: string, cardholderName: string) => {
+    if (!confirm(`Are you sure you want to unfreeze the card for ${cardholderName}? The cardholder will be able to make transactions again.`)) {
+      return
+    }
+
     try {
       await mockApi.unfreezeCard(cardId)
       toast.success('Card unfrozen successfully')
       fetchCards()
     } catch (error) {
       toast.error('Failed to unfreeze card')
+    }
+  }
+
+  const handleDeleteCard = async (cardId: string, cardholderName: string) => {
+    if (!confirm(`Are you sure you want to delete the card for ${cardholderName}? This action cannot be undone and all card data will be permanently removed.`)) {
+      return
+    }
+
+    try {
+      await mockApi.deleteCard(cardId)
+      toast.success('Card deleted successfully')
+      fetchCards()
+    } catch (error) {
+      toast.error('Failed to delete card')
     }
   }
 
@@ -128,8 +150,8 @@ export default function Cards() {
               <VirtualCard
                 card={card}
                 showDetails={true}
-                onFreeze={() => handleFreezeCard(card.id)}
-                onUnfreeze={() => handleUnfreezeCard(card.id)}
+                onFreeze={() => handleFreezeCard(card.id, card.cardholderName)}
+                onUnfreeze={() => handleUnfreezeCard(card.id, card.cardholderName)}
               />
               <div className="mt-4 p-4 bg-dark-card rounded-xl space-y-4">
                 <div>
@@ -158,20 +180,29 @@ export default function Cards() {
 
                 {/* Action Buttons */}
                 {canEditCards && (
-                  <div className="flex gap-2 pt-3 border-t border-dark-slate">
+                  <div className="space-y-2 pt-3 border-t border-dark-slate">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleAddBalance(card)}
+                        className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
+                      >
+                        <DollarSign size={16} />
+                        Add Balance
+                      </button>
+                      <button
+                        onClick={() => handleEditCard(card)}
+                        className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
+                      >
+                        <Edit size={16} />
+                        Edit Card
+                      </button>
+                    </div>
                     <button
-                      onClick={() => handleAddBalance(card)}
-                      className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
+                      onClick={() => handleDeleteCard(card.id, card.cardholderName)}
+                      className="w-full btn-secondary flex items-center justify-center gap-2 text-sm py-2 text-red-400 hover:bg-red-500/10 hover:border-red-500/30"
                     >
-                      <DollarSign size={16} />
-                      Add Balance
-                    </button>
-                    <button
-                      onClick={() => handleEditCard(card)}
-                      className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
-                    >
-                      <Edit size={16} />
-                      Edit Card
+                      <Trash2 size={16} />
+                      Delete Card
                     </button>
                   </div>
                 )}

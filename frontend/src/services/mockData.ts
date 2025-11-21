@@ -409,6 +409,14 @@ export const mockApi = {
     return cards[index]
   },
 
+  deleteCard: async (cardId: string) => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const cards = JSON.parse(localStorage.getItem(STORAGE_KEYS.CARDS) || '[]')
+    const filtered = cards.filter((c: Card) => c.id !== cardId)
+    localStorage.setItem(STORAGE_KEYS.CARDS, JSON.stringify(filtered))
+  },
+
   // Transactions
   getTransactions: async () => {
     await new Promise(resolve => setTimeout(resolve, 300))
