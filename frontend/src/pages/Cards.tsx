@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Search, Filter, Edit, DollarSign, Trash2 } from 'lucide-react'
+import { Plus, Search, Filter, Edit, DollarSign } from 'lucide-react'
 import { Card } from '@/types'
 import { mockApi } from '@/services/mockData'
 import VirtualCard from '@/components/VirtualCard'
@@ -152,6 +152,7 @@ export default function Cards() {
                 showDetails={true}
                 onFreeze={() => handleFreezeCard(card.id, card.cardholderName)}
                 onUnfreeze={() => handleUnfreezeCard(card.id, card.cardholderName)}
+                onDelete={canEditCards ? () => handleDeleteCard(card.id, card.cardholderName) : undefined}
               />
               <div className="mt-4 p-4 bg-dark-card rounded-xl space-y-4">
                 <div>
@@ -180,29 +181,20 @@ export default function Cards() {
 
                 {/* Action Buttons */}
                 {canEditCards && (
-                  <div className="space-y-2 pt-3 border-t border-dark-slate">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleAddBalance(card)}
-                        className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
-                      >
-                        <DollarSign size={16} />
-                        Add Balance
-                      </button>
-                      <button
-                        onClick={() => handleEditCard(card)}
-                        className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
-                      >
-                        <Edit size={16} />
-                        Edit Card
-                      </button>
-                    </div>
+                  <div className="flex gap-2 pt-3 border-t border-dark-slate">
                     <button
-                      onClick={() => handleDeleteCard(card.id, card.cardholderName)}
-                      className="w-full btn-secondary flex items-center justify-center gap-2 text-sm py-2 text-red-400 hover:bg-red-500/10 hover:border-red-500/30"
+                      onClick={() => handleAddBalance(card)}
+                      className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
                     >
-                      <Trash2 size={16} />
-                      Delete Card
+                      <DollarSign size={16} />
+                      Add Balance
+                    </button>
+                    <button
+                      onClick={() => handleEditCard(card)}
+                      className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm py-2"
+                    >
+                      <Edit size={16} />
+                      Edit Card
                     </button>
                   </div>
                 )}
