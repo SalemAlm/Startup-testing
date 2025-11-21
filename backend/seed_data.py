@@ -6,9 +6,10 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 from app.core.security import get_password_hash
+from app.core.config import settings
 
-MONGODB_URL = "mongodb://localhost:27017"
-DB_NAME = "corporate_cards"
+MONGODB_URL = settings.MONGODB_URL
+DB_NAME = settings.MONGODB_DB_NAME
 
 async def seed_database():
     client = AsyncIOMotorClient(MONGODB_URL)
